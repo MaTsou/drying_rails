@@ -1,34 +1,227 @@
 # DryingRails
 
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/drying_rails`. To experiment with that code, run `bin/console` for an interactive prompt.
+This gem provides a way to organize code in a Rails app. Many things are 
+written about thin controller and fat model.. Here, largely inspired by Hanami 
+2 project, thin controller and thin model become reality.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+This gem is not on `rubygems.org`. To install it, add `gem 'drying_rails', 
+github: "MaTsou/drying_rails"` to your Gemfile and run `bundle install`.
 
 ## Usage
 
-TODO: Write usage instructions here
+This gem provides a few things helping you to follow the `single responsability 
+principle` beyond the Rails way (I think !). All these things are independant 
+from each other (except the dry-system container) and you can use only those 
+you agree with.
 
-## Development
+First of all, you need to add a `drying` subfolder to `app` folder. All drying 
+things will live here.
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+A `dry-system` container is provided and automatically register the all 
+`drying` folder. Then in any class (controller, actions, services.. any except 
+model !) in your app, dependency injection is easy using the dry-system way 
+(see 
+[dry-system](https://dry-rb.org/gems/dry-system/1.0/dependency-auto-injection/)) 
+: in `drying_rails` the dependency _injector_ is `Deps` :
+```
+class MyClass
+  include Deps[ '...' ]
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+#### Drying views
+You may want to dry your views. Use components and our provided `component` helper.
 
-## Contributing
+```
+# component helper syntax
+<%= component( 'name', **options_a ).render( **options_b ) %>
+```
++ `name` is the path to component in `app/drying/components` folder. So 
+`component( 'icon.trash' )` will refer to the `app/drying/components/icon/trash.rb` file
++ `options_a` first round of options configuration.
++ `options_b` second round.
+These two rounds allow you to share configuration among multiple rendering 
+of a dedicated component :
+```
+<% icon = component( 'icon.base', class: "home-page-icon" ) %>
+<%= icon.render( name: 'home' ) %>
+<%= icon.render( name: 'back' ) %>
+<%= icon.render( name: 'settings' ) %>
+```
+When calling `component( 'name', **options_a)`, `options_a` is merged to a 
+default configuration hash. When `render( **options_b)` is called, `options_b` 
+is merged to the configuration (eventually overriding previous config).
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/drying_rails.
+All this configuration is holded by the `config` hash (readable attribute of 
+`DryingComponent` subclasses).
+```
+# Creating a component
+# app/drying/components/icon/base.rb
+module Components
+  module Icon
+    class Base < DryingComponent
+      def erb_template # a file template is also allowed; see DryingComponent code
+        <<~ERB
+          <%= content_tag icon_tag, '', icon: icon_name, **options %>
+        ERB
+      end
+
+      def provided_vars
+        { # from config hash to template needed values..
+          icon_name: icon_name,
+          icon_tag: "iconify-icon",
+          options: {
+            inline: true,
+            style: config.fetch( :style, nil ),
+            class: config.fetch( :class, nil ),
+          }
+        }
+      end
+
+      private
+      def icon_name # no more code in views !
+        "mdi:#{config[:name]}"
+      end
+  end
+end
+```
++ A `render?` method (default to true) exists to manage conditional rendering.
++ A `defaults` method (default to empty hash) exists to provide default 
+  configuration.
+
+#### Drying controllers
+Separation of concerns means, to me, that controllers do not have to deal with 
+model things nor view things. There job is to control flow.
+1. Receiving data, they call dedicated `actions` (which do the model thing),
+1. Then, eventually, they call dedicated `services` (which do non-model related job)
+1. Then, they call dedicated `exposers` to provide the needed content to the next view.
+
+
++ Actions are classes responding to a unique public method : `call`. They live 
+  in `app/drying/actions` to be correctly registered in the container and for 
+  the drying controller `perform` helper to work.
+  ```
+  # app/drying/actions/posts.rb
+  module Actions
+    module Posts
+      class Base
+        include Deps[ 'result' ] # a ThyResult instance..(see thy_result gem)
+        # eventual common code for post actions here
+      end
+    end
+  end
+
+  # app/drying/actions/posts/create.rb
+  module Actions
+    module Posts
+      class Create < Posts::Base
+        def call( context )
+          # context is a Ustruct (see ustruct gem : unmutable struct) containing the given parameters
+          post = Post.create( context.params )
+          status = post.valid? ? :Success : :Failure
+          result.set( status, post )
+        end
+      end
+    end
+  end
+  ```
+
++ Services are classes responding to a unique public  method : `call`. They 
+  live in `app/drying/services`.
+  ```
+  # app/drying/services/email_notifier.rb
+  module Services
+    class EmailNotifier
+      def call( context )
+        # whatever
+      end
+    end
+  end
+  ```
+
++ Exposers are classes to put together all stuff needed to next view. They live 
+  in `app/drying/exposers` folder. I try to mimic `Hanami` syntax using an 
+  `expose` method. They, like `Hanami`, also provide automatic module 
+  decoration with `Presenters` (Hanami Parts). See docs for complete syntax. 
+  `context` is a Ustruct containing calling options. If `context` provide an 
+  already name stuff (here `post`), the exposer do not call corresponding 
+  expose method..
+  ```
+  # app/drying/exposers/posts.rb
+  module Exposers
+   module Posts
+      class Base < DryExposer
+        # common stuff
+      end
+    end
+  end
+
+  # app/drying/exposers/posts/new.rb
+  module Exposers
+    module Posts
+      class New < Posts::Base
+        include Deps[ query: 'actions.posts.new' ]
+
+        expose :post do |context:|
+          query.call context
+        end # make a `post` local var available in view.
+      end
+    end
+  end
+  ```
+
++ Presenters are modules living in `app/drying/presenters` folder.
+  ```
+  # app/drying/presenters/input.rb
+  module Presenters
+    module Input
+      # will automatically extend `input` exposure.
+    end
+  end
+  ```
+
+Controller flow :
+  + `perform` is a drying controller helper to call actions. It resolves the 
+    action name and wrap given options to a Ustruct context variable.
+  + `execute` is a drying controller helper used to call any container content 
+    (like services).
+  + `locals_for` is a drying controller helper to call exposers. The controller 
+    can provide its own locals and exposer eventually complete (but do not 
+    override) the list. Here, `new` method render the post-new view with a 
+    `post` local provided by exposer and `create` method render (on creation 
+    failure) the post-new view with a `post` local provided by controller.
+
+  Note : this way, controller needs to **explicitely** call a view.
+
+  Note (bis) : `perform` is syntactic sugar, calling `execute` under the hood. 
+  `perform( 'posts.create', ... )` is equivalent as `execute( 
+  'actions.posts.create', ...)`. 
+
+  Note (ter) : `locals_for` is syntactic sugar, calling `execute` under the hood. 
+  `locals_for( 'posts.new', ... )` is equivalent as `execute( 
+  'exposers.posts.create', ...)`.
+
+  ```
+  # app/controllers/posts_controller.rb
+  def new
+      render :new, locals_for( 'posts.new' ) # here post local is not provided
+  end
+
+  def create
+      perform( 'posts.create', params: permitted_params ) do |result|
+        result.isSuccess do
+          execute( 'services.email_notifier', ... )
+          redirect_to :home, status: :see_other
+        end
+        result.isFailure do |post|
+          render :new,
+            locals: locals_for( 'posts.new', post: post ), # here post local is provided
+            status: :unprocessable_entity
+        end
+      end
+  end
+  ```
 
 ## License
 
