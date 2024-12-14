@@ -9,14 +9,25 @@ module DryExposer
   class Decorator
     attr_reader :decorators
 
+    module Singular
+      # needed when testing outside a Rails context
+      def singularize
+        gsub( /s$/, '' )
+      end
+    end
+
     def initialize( key, args )
       @decorators = case args
                     when nil
-                      [ key.to_s, key.to_s.singularize ]
+                      k = key.to_s
+                      k.extend Singular unless k.respond_to? :singularize
+                      [ k, k.singularize ]
                     when Array
                       args
                     else
-                      [ args.to_s, args.to_s.singularize ]
+                      a = args.to_s
+                      a.extend Singular unless a.respond_to? :singularize
+                      [ a, a.singularize ]
                     end.map { |str| to_presenter( str ) }
     end
 

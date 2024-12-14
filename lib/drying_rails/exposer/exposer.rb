@@ -86,15 +86,15 @@ module DryExposer
     #   Home.new.call( content_a: 'stuff', id: 3 )
     #   # will return a hash :
     #   {
-    #     content_a: 'stuff', # decorated by ContentAPresenter module if exists
-    #     content_b: 'stuff', # decorated by ContentBPresenter module if exists
+    #     content_a: 'stuff', # decorated by Presenters::ContentA module if exists
+    #     content_b: 'stuff', # decorated by Presenters::ContentB module if exists
     #     content_c: "id is 3", # decorated by ...
     #     content_d: "id is 3 and other content is stuff", # decorated by ...
-    #     inputs: [ "hello", "world" ], # decorated by InputsPresenter and 
-    #       subitem decorated by InputPresenter if exists
-    #     entries: [...], # decorated with ThingsPresenter and ThingPresenter
-    #     categories: [...], # decorated with ThingsPresenter and 
-    #       AnotherPresenter
+    #     inputs: [ "hello", "world" ], # decorated by Presenters::Inputs and 
+    #       subitem decorated by Presenters::Input if exists
+    #     entries: [...], # decorated with Presenters::Things and Presenters::Thing
+    #     categories: [...], # decorated with Presenters::Things and 
+    #       Presenters::Another
     #   }
     #
     # @param entity [Object] not used
