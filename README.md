@@ -92,7 +92,7 @@ end
 
 #### Drying controllers
 Separation of concerns means, to me, that controllers do not have to deal with 
-model things nor view things. There job is to control flow.
+model things nor view things. Their job is to control flow.
 1. Receiving data, they call dedicated `actions` (which do the model thing),
 1. Then, eventually, they call dedicated `services` (which do non-model related job)
 1. Then, they call dedicated `exposers` to provide the needed content to the next view.
@@ -175,17 +175,17 @@ model things nor view things. There job is to control flow.
 
 + Presenters are modules living in `app/drying/presenters` folder.
   ```
-  # app/drying/presenters/input.rb
+  # app/drying/presenters/post.rb
   module Presenters
-    module Input
-      # will automatically extend `input` exposure.
+    module Post
+      # will automatically extend `post` exposure.
     end
   end
   ```
 
 Controller flow :
   + `perform` is a drying controller helper to call actions. It resolves the 
-    action name and wrap given options to a Ustruct context variable.
+    action name and wraps given options to a Ustruct context variable.
   + `execute` is a drying controller helper used to call any container content 
     (like services).
   + `locals_for` is a drying controller helper to call exposers. The controller 
@@ -232,7 +232,7 @@ responsability inside controller (this is its job) but model provide the field
 lists.
 
 `permitted_params` as used above is a `drying_rails` controller helper. It 
-resolves model name form current controller name and permits  params provided 
+resolves model name from current controller name and permits  params provided 
 by `permitted_attributes` model class method : if model respond to 
 `numerical_attributes` class method, a conversion from `,` decimal separator to 
 `.` will occur.
