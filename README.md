@@ -11,7 +11,7 @@ github: "MaTsou/drying_rails"` to your Gemfile and run `bundle install`.
 
 ## Usage
 
-This gem provides a few things helping you to follow the `single responsability 
+This gem provides a few things helping you to follow the `single responsability
 principle` beyond the Rails way (I think !). All these things are independant 
 from each other (except the dry-system container) and you can use only those 
 you agree with.
@@ -56,7 +56,7 @@ is merged to the configuration (eventually overriding previous config).
 All this configuration is holded by the `config` hash (readable attribute of 
 `DryingComponent` subclasses).
 ```
-# Creating a component
+# Creating a component as a DryingComponent subclass.
 # app/drying/components/icon/base.rb
 module Components
   module Icon
@@ -75,7 +75,7 @@ module Components
             inline: true,
             style: config.fetch( :style, nil ),
             class: config.fetch( :class, nil ),
-          }
+          }.compact
         }
       end
 
@@ -140,13 +140,15 @@ model things nor view things. There job is to control flow.
   end
   ```
 
-+ Exposers are classes to put together all stuff needed to next view. They live 
-  in `app/drying/exposers` folder. I try to mimic `Hanami` syntax using an 
-  `expose` method. They, like `Hanami`, also provide automatic module 
-  decoration with `Presenters` (Hanami Parts). See docs for complete syntax. 
-  `context` is a Ustruct containing calling options. If `context` provide an 
-  already name stuff (here `post`), the exposer do not call corresponding 
-  expose method..
++ Exposers are classes to put together all stuff needed to a view. They 
+  subclass the `DryExposer` class. They live in `app/drying/exposers` folder. I 
+  try to mimic `Hanami` syntax using an `expose` method. They, like `Hanami`, 
+  also provide automatic module decoration with `Presenters` (Hanami Parts). 
+  See docs for complete syntax.
+
+  `context` is a Ustruct containing calling 
+  options. If `context` provide an already name stuff (here `post`), the 
+  exposer do not call corresponding expose method..
   ```
   # app/drying/exposers/posts.rb
   module Exposers
@@ -188,40 +190,65 @@ Controller flow :
     (like services).
   + `locals_for` is a drying controller helper to call exposers. The controller 
     can provide its own locals and exposer eventually complete (but do not 
-    override) the list. Here, `new` method render the post-new view with a 
+    override) the list. Below, `new` method render the post-new view with a 
     `post` local provided by exposer and `create` method render (on creation 
     failure) the post-new view with a `post` local provided by controller.
 
   Note : this way, controller needs to **explicitely** call a view.
 
   Note (bis) : `perform` is syntactic sugar, calling `execute` under the hood. 
-  `perform( 'posts.create', ... )` is equivalent as `execute( 
+  `perform( 'posts.create', ... )` is equivalent to `execute( 
   'actions.posts.create', ...)`. 
 
   Note (ter) : `locals_for` is syntactic sugar, calling `execute` under the hood. 
-  `locals_for( 'posts.new', ... )` is equivalent as `execute( 
+  `locals_for( 'posts.new', ... )` is equivalent to `execute( 
   'exposers.posts.create', ...)`.
 
   ```
   # app/controllers/posts_controller.rb
   def new
-      render :new, locals_for( 'posts.new' ) # here post local is not provided
+    render :new, locals_for( 'posts.new' ) # here post local is not provided
   end
 
   def create
-      perform( 'posts.create', params: permitted_params ) do |result|
-        result.isSuccess do
-          execute( 'services.email_notifier', ... )
-          redirect_to :home, status: :see_other
-        end
-        result.isFailure do |post|
-          render :new,
-            locals: locals_for( 'posts.new', post: post ), # here post local is provided
-            status: :unprocessable_entity
-        end
+    perform( 'posts.create', params: permitted_params ) do |result|
+      result.isSuccess do
+        execute( 'services.email_notifier', ... )
+        redirect_to :home, status: :see_other
       end
+      result.isFailure do |post|
+        render :new,
+          locals: locals_for( 'posts.new', post: post ), # here post local is provided
+          status: :unprocessable_entity
+      end
+    end
   end
   ```
+
+#### Hey, another drying thing : `permitted_params`
+There is a functionnality where controllers need (a priori) to know 
+about model. This is parameter permission. I provide a way to keep this 
+responsability inside controller (this is its job) but model provide the field 
+lists.
+
+`permitted_params` as used above is a `drying_rails` controller helper. It 
+resolves model name form current controller name and permits  params provided 
+by `permitted_attributes` model class method : if model respond to 
+`numerical_attributes` class method, a conversion from `,` decimal separator to 
+`.` will occur.
+```
+class Post < ApplicationRecord
+  class < self
+    def permitted_attributes
+      [ :content, :date, :a_numerical_field, ... ]
+    end
+
+    def numerical_attributes
+      [ :a_numerical_field, ... ]
+    end
+  end
+end
+```
 
 ## License
 
