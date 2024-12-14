@@ -8,3 +8,4 @@ gemspec
 
 gem "rake", "~> 13.0"
 gem "thy_result", "~> 0.1", github: "MaTsou/thy_result"
+gem "ustruct", "~> 0.1", github: "MaTsou/ustruct"

@@ -2,7 +2,7 @@ module DryingRails
 
   module ControllerHelpers
     def execute( action, entity = nil, **options )
-      res = DryingContainer[ action ].call( entity, Context.new( options ) )
+      res = DryingContainer[ action ].call( entity, Ustruct.new( options ) )
       block_given? ? yield( res ) : res
     end
 

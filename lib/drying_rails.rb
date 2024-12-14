@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'ustruct'
 require_relative "drying_rails/version"
 require_relative 'drying_rails/view_helpers'
 require_relative 'drying_rails/params_manager'

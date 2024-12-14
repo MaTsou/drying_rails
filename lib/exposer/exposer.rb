@@ -98,7 +98,7 @@ module DryExposer
     #   }
     #
     # @param entity [Object] not used
-    # @param context [Context] a Context object containing named parameters
+    # @param context [Ustruct] a Ustruct object containing named parameters
     #
     def call( entity, context )
       kwargs = { context: context }.merge context.to_hash# all inclusive !
