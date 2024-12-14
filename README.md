@@ -6,8 +6,13 @@ written about thin controller and fat model.. Here, largely inspired by Hanami
 
 ## Installation
 
-This gem is not on `rubygems.org`. To install it, add `gem 'drying_rails', 
-github: "MaTsou/drying_rails"` to your Gemfile and run `bundle install`.
+This gem is not on `rubygems.org`. To install it, add
+```
+gem 'thy_result', github: "MaTsou/thy_result"
+gem 'ustruct', github: "MaTsou/ustruct"
+gem 'drying_rails', github: "MaTsou/drying_rails"
+```
+to your Gemfile and run `bundle install`.
 
 ## Usage
 
