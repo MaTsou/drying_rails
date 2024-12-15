@@ -56,7 +56,9 @@ of a dedicated component :
 ```
 When calling `component( 'name', **options_a)`, `options_a` is merged to a 
 default configuration hash. When `render( **options_b)` is called, `options_b` 
-is merged to the configuration (eventually overriding previous config).
+is merged to the configuration (eventually overriding previous config). Special 
+care to `:class` or `:style` options : these are concatenated rather than 
+overrided..
 
 All this configuration is holded by the `config` hash (readable attribute of 
 `DryingComponent` subclasses).
