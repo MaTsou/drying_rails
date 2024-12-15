@@ -2,17 +2,17 @@ class ::DryingComponent
   attr_reader :view, :config
 
   def defaults
-    {}
+    { class: nil, style: nil }
   end
 
   def configure( view, **options )
     @view = view
-    @config = defaults.merge( options )
+    @config = update_config( defaults, options )
     self
   end
 
   def render( **options, &block )
-    @config = @config.merge( options )
+    @config = update_config( @config, options )
     return unless render?
     view.render **rendered_object, locals: provided_vars
   end
@@ -28,6 +28,13 @@ class ::DryingComponent
   end
 
   private
+
+  def update_config( last, incoming )
+    config = last.dup
+    config[ :class ] = [ config[:class], incoming.delete( :class ) ].join ' '
+    config[ :style ] = [ config[:style], incoming.delete( :style ) ].join ' '
+    config.merge incoming
+  end
 
   def rendered_object
     inline_template? ?
