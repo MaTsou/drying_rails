@@ -257,6 +257,54 @@ class Post < ApplicationRecord
 end
 ```
 
+#### Other possibilities
++ Settings
+  I use `app/drying/settings/` folder to store any settings which then can be 
+  required anywhere in the app using `include Deps[ '...' ]` dry-system method.
+  ```
+  # app/drying/settings/currency.rb
+  module Settings
+    class Languages < Ustruct
+      include Deps[ 'if needed' ]
+
+      PROVIDED_LANGUAGES = [
+      'english': 'en',
+      'français': 'fr
+      ]
+
+      def initialize
+        super( provided_languages: PROVIDED_LANGUAGES )
+      end
+    end
+  end
+
+  # app/drying/exposers/accounts/edit.rb
+  module Exposers
+    module Accounts
+      class Edit < Accounts::Exposer
+        include Deps[ 'settings.languages' ]
+
+        expose :provided_languages do
+          languages.provided_languages
+        end
+      end
+    end
+  end
+  ```
+
++ Use dependencies inside models
+  Because of the way model are instanciated (I think, but I did not 
+  investigate), `include Deps[ 'something' ]` does not work inside models.
+  This gem provide a workaround :
+  ```
+  class Post < ApplicationRecord
+    include_deps( 'something' )
+  end
+  ```
+  This will make `something` be a reference to `DryingContainer[ 'something' ]` 
+  content both inside class or instance model methods. Typically, combine with 
+  the settings thing describe above allow working with settings inside models.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
