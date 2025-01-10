@@ -259,6 +259,7 @@ end
 
 #### Other possibilities
 + Settings
+
   I use `app/drying/settings/` folder to store any settings which then can be 
   required anywhere in the app using `include Deps[ '...' ]` dry-system method.
   ```
@@ -293,6 +294,7 @@ end
   ```
 
 + Use dependencies inside models
+
   Because of the way model are instanciated (I think, but I did not 
   investigate), `include Deps[ 'something' ]` does not work inside models.
   This gem provide a workaround :
