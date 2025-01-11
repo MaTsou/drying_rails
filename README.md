@@ -25,15 +25,24 @@ First of all, you need to add a `drying` subfolder to `app` folder. All drying
 things will live here.
 
 A `dry-system` container is provided and automatically register the all 
-`drying` folder. Then in any class (controller, actions, services.. any except 
-model !) in your app, dependency injection is easy using the dry-system way 
-(see 
+`drying` folder. Then in any class (controller, actions, services.. ) in your 
+app, dependency injection is easy using the dry-system way (see 
 [dry-system](https://dry-rb.org/gems/dry-system/1.0/dependency-auto-injection/)) 
 : in `drying_rails` the dependency _injector_ is `Deps` :
 ```
 class MyClass
   include Deps[ '...' ]
 ```
+Special case of `Model` where `include Deps[ '...' ]` does not work (probably 
+due to how models are instanciated). This gem provides a workaround with nearly 
+the same syntax :
+```
+class Post < ApplicationRecord
+  include_deps( '...' )
+end
+```
+This makes the dependency available inside both class and instance Model 
+methods.
 
 #### Drying views
 You may want to dry your views. Use components and our provided `component` helper.
@@ -270,7 +279,7 @@ end
 
       PROVIDED_LANGUAGES = [
       'english': 'en',
-      'français': 'fr
+      'français': 'fr'
       ]
 
       def initialize
@@ -292,20 +301,6 @@ end
     end
   end
   ```
-
-+ Use dependencies inside models
-
-  Because of the way model are instanciated (I think, but I did not 
-  investigate), `include Deps[ 'something' ]` does not work inside models.
-  This gem provide a workaround :
-  ```
-  class Post < ApplicationRecord
-    include_deps( 'something' )
-  end
-  ```
-  This will make `something` be a reference to `DryingContainer[ 'something' ]` 
-  content both inside class or instance model methods. Typically, combine with 
-  the settings thing describe above allow working with settings inside models.
 
 ## License
 
