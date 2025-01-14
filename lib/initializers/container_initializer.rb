@@ -14,7 +14,7 @@ class ::DryingContainer < Dry::System::Container
     config.component_dirs.add 'app/drying'
   end
 #  self.register 'result', ThyResult
-  self.register 'result', MyResult
+  self.register 'result', MyResult.new
   self.finalize! if Rails.env.production?
 end
 ::Deps = DryingContainer.injector
