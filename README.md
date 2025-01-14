@@ -8,7 +8,6 @@ written about thin controller and fat model.. Here, largely inspired by Hanami
 
 This gem is not on `rubygems.org`. To install it, add
 ```
-gem 'thy_result', github: "MaTsou/thy_result"
 gem 'ustruct', github: "MaTsou/ustruct"
 gem 'drying_rails', github: "MaTsou/drying_rails"
 ```
@@ -122,7 +121,7 @@ model things nor view things. Their job is to control flow.
   module Actions
     module Posts
       class Base
-        include Deps[ 'result' ] # a ThyResult instance..(see thy_result gem)
+        include Deps[ 'result' ] # a way to 'encapsulate' results and test them with pattern matching
         # eventual common code for post actions here
       end
     end
@@ -135,7 +134,7 @@ model things nor view things. Their job is to control flow.
         def call( context )
           # context is a Ustruct (see ustruct gem : unmutable struct) containing the given parameters
           post = Post.create( context.params )
-          status = post.valid? ? :Success : :Failure
+          status = post.valid? ? :success : :failure
           result.set( status, post )
         end
       end
@@ -227,16 +226,15 @@ Controller flow :
   end
 
   def create
-    perform( 'posts.create', params: permitted_params ) do |result|
-      result.isSuccess do
-        execute( 'services.email_notifier', ... )
-        redirect_to :home, status: :see_other
-      end
-      result.isFailure do |post|
-        render :new,
-          locals: locals_for( 'posts.new', post: post ), # here post local is provided
-          status: :unprocessable_entity
-      end
+    case perform( 'posts.create', params: permitted_params )
+    in success:
+      execute( 'services.email_notifier', ... )
+      redirect_to :home, status: :see_other
+
+    in failure: post
+      render :new,
+        locals: locals_for( 'posts.new', post: post ), # here post local is provided
+        status: :unprocessable_entity
     end
   end
   ```

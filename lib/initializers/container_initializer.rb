@@ -1,5 +1,4 @@
 require 'dry/system'
-#require 'thy_result'
 
 class MyResult
   def set( type, value = true, *args )
@@ -13,7 +12,6 @@ class ::DryingContainer < Dry::System::Container
     config.root = Rails.root
     config.component_dirs.add 'app/drying'
   end
-#  self.register 'result', ThyResult
   self.register 'result', MyResult.new
   self.finalize! if Rails.env.production?
 end
