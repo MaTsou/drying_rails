@@ -1,5 +1,5 @@
 class ::DryingComponent
-  attr_reader :view, :config
+  attr_reader :view
 
   def defaults
     { class: nil, style: nil }
@@ -7,12 +7,16 @@ class ::DryingComponent
 
   def configure( view, **options )
     @view = view
-    @config = update_config( defaults, options )
+    @_config = update_config( defaults, options )
     self
   end
 
+  def config
+    defined?( @config ) ? @config : @_config
+  end
+
   def render( **options, &block )
-    @config = update_config( @config, options )
+    @config = update_config( @_config, options )
     return unless render?
     view.render **rendered_object, locals: provided_vars
   end
@@ -32,8 +36,22 @@ class ::DryingComponent
   def update_config( last, incoming )
     config = last.dup
     config[ :class ] = [ config[:class], incoming.delete( :class ) ].join ' '
-    config[ :style ] = [ config[:style], incoming.delete( :style ) ].join ' '
+    config[ :style ] = merge_style config[:style], incoming.delete( :style )
     config.merge incoming
+  end
+
+  def merge_style( first, second )
+    output = style_to_hash( first ).merge( style_to_hash( second ) )
+      .to_a.map { |s| s.join(': ') }.join('; ')
+  end
+
+  def style_to_hash( style )
+    return {} unless style
+    pretty_split( style, ';' ).map { |s| pretty_split( s, ':' ) }.to_h
+  end
+
+  def pretty_split( str, sep )
+    str.split(sep).map(&:strip).reject { |s| s.empty? }
   end
 
   def rendered_object
