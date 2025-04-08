@@ -1,18 +1,22 @@
+# frozen_string_literal: true
+
 require 'dry/system'
 
+# my_result class
 class MyResult
-  def set( type, value = true, *args )
-    content = args.empty? ? value : args.unshift( value )
+  def set(type, *args)
+    content = args.empty? || args
     { type => content }
   end
 end
 
+# drying container class
 class ::DryingContainer < Dry::System::Container
   configure do |config|
     config.root = Rails.root
     config.component_dirs.add 'app/drying'
   end
-  self.register 'result', MyResult.new
-  self.finalize! if Rails.env.production?
+  register 'result', MyResult.new
+  finalize! if Rails.env.production?
 end
-::Deps = DryingContainer.injector
+Deps = DryingContainer.injector

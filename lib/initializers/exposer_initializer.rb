@@ -1,4 +1,6 @@
-require_relative '../drying_rails/exposer/exposer.rb'
-require_relative '../drying_rails/exposer/exposures.rb'
-require_relative '../drying_rails/exposer/exposure.rb'
-require_relative '../drying_rails/exposer/decorator.rb'
+# frozen_string_literal: true
+
+require_relative '../drying_rails/exposer/exposer'
+require_relative '../drying_rails/exposer/exposures'
+require_relative '../drying_rails/exposer/exposure'
+require_relative '../drying_rails/exposer/decorator'
