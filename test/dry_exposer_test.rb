@@ -72,22 +72,18 @@ describe DryExposer do
       _( result ).must_equal expected
 
       # expected decoration : result is object
-      _( result[:given] ).singleton_class.ancestors.include?( Presenters::Given )
+      _(result[:given]).must_have_ancestor Presenters::Given
 
       # expected decoration : result is object, with: option used
-      _( result[:absolute] ).singleton_class.ancestors.include?( Presenters::Given )
+      _(result[:absolute]).must_have_ancestor Presenters::Absolute
 
       # expected decoration : result is Array of objects
-      _( result[:absolute_lists] ).singleton_class
-        .ancestors.include?( Presenters::AbsoluteLists )
-      _( result[:absolute_lists].first ).singleton_class
-        .ancestors.include?( Presenters::AbsoluteList )
+      _(result[:absolute_lists]).must_have_ancestor Presenters::AbsoluteLists
+      _(result[:absolute_lists].first).must_have_ancestor Presenters::AbsoluteList
 
       # expected decoration : result is Array of objects, with: option used
-      _( result[:with_absolute_lists] ).singleton_class
-        .ancestors.include?( Presenters::Given )
-      _( result[:with_absolute_lists].first ).singleton_class
-        .ancestors.include?( Presenters::Absolute )
+      _(result[:with_absolute_lists]).must_have_ancestor Presenters::Given
+      _(result[:with_absolute_lists].first).must_have_ancestor Presenters::Absolute
     end
   end
 end
