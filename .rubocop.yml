@@ -1,0 +1,12 @@
+AllCops:
+  NewCops: enable
+
+Metrics/BlockLength:
+  AllowedMethods: ['describe', 'before', 'it']
+
+Gemspec/RequireMFA:
+  Enabled: false
+
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
