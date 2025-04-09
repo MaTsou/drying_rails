@@ -57,7 +57,7 @@ describe DryingComponent do
       @my_component.configure(
         @my_view,
         class: '  new_class ',
-        style: ' color:  red ;'
+        style: ' ; color:  red ;;'
       ).render
     )
       .must_equal 'hello'
