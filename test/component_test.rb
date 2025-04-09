@@ -3,7 +3,7 @@
 require_relative 'test_helper'
 require_relative '../lib/initializers/component_initializer'
 
-class MyComponent < ::DryingComponent
+class MyComponent < DryingComponent
   def defaults
     { class: 'default_class', style: 'default_style: 3;' }
   end
