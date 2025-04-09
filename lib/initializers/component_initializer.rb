@@ -35,9 +35,15 @@ class ::DryingComponent
 
   def update_config( last, incoming )
     config = last.dup
-    config[ :class ] = [ config[:class], incoming.delete( :class ) ].join ' '
+    config[ :class ] = merge_class config[:class], incoming.delete( :class )
     config[ :style ] = merge_style config[:style], incoming.delete( :style )
     config.merge incoming
+  end
+
+  def merge_class( first, second )
+    klasses = first ? pretty_split(first, ' ') : []
+    klasses << pretty_split(second, ' ') if second
+    klasses.join ' '
   end
 
   def merge_style( first, second )
