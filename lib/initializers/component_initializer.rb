@@ -47,11 +47,11 @@ class ::DryingComponent
 
   def style_to_hash( style )
     return {} unless style
-    pretty_split( style, ';' ).map { |s| pretty_split( s, ':' ) }.to_h
+    pretty_split( style, ';' ).to_h { |s| pretty_split( s, ':' ) }
   end
 
   def pretty_split( str, sep )
-    str.split(sep).map(&:strip).reject { |s| s.empty? }
+    str.split(sep).map(&:strip).compact
   end
 
   def rendered_object
