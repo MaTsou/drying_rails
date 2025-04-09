@@ -5,8 +5,13 @@ require 'dry/system'
 # my_result class
 class MyResult
   def set(type, *args)
-    content = args.empty? || args
+    content = args.empty? || process(*args)
     { type => content }
+  end
+
+  def process(*args)
+    # take care, args.one? returns false on [false] !
+    args.size == 1 ? args.pop : args
   end
 end
 
