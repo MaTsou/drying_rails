@@ -24,10 +24,11 @@ module DryingRails
       return unless @model.respond_to? :numerical_attributes
 
       @model.numerical_attributes&.each do |field|
-        params[@model_name]
-          .fetch(field, '')
-          .to_s
-          .gsub!(',', '.')
+        next unless params[@model_name][field]
+
+        params[@model_name][field].
+          to_s.
+          gsub!(',', '.')
       end
     end
   end
